@@ -1,0 +1,244 @@
+<html>
+	
+	<head>
+		<link href="bootstrap.min.css" rel="stylesheet" />
+	
+	<style>
+		*{
+			font-weight:bold;
+		}
+	</style>
+
+	</head>
+	
+	<body class="container">
+		
+		<div class="col-sm-12 col-lg-12" > 
+		<form id="questionform" onsubmit="return false">
+			
+			<div class="form-group" id="questionpane">
+				<p id="question"></p>
+			</div>
+			<div id="mcqsform" style="display:none">
+				<div class="form-group" >
+					<div class="radio">
+						<label>
+							<input type="radio" name="option" id="option1ans"/>
+							<span id="option1">Option 1</span>
+						</label>
+					</div>
+					
+					<div class="radio">
+						<label>
+							<input type="radio" name="option" id="option2ans"/>
+							<span id="option2">Option 2</span>
+						</label>
+					</div>
+					
+					<div class="radio">
+						<label>
+							<input type="radio" name="option" id="option3ans"/>
+							<span id="option3">Option 3</span>
+						</label>
+					</div>
+					
+					<div class="radio">
+						<label>
+							<input type="radio" name="option" id="option4ans"/>
+							<span id="option4">Option 4</span>
+						</label>
+					</div>
+					<div class="">
+						<input type="submit" class="btn btn-primary" value="submit" onclick="checkanswerMcqs()">
+					</div>
+				</div>
+				
+			</div>
+			<div id="fillinform"  style="display:none">
+				<div class="form-group">
+					<input type="text" id="useranswer" class="form-control" />
+				</div>
+				<div class="">
+					<input type="submit" class="btn btn-primary" value="submit" onclick="checkanswerFill()">
+				</div>
+			</div>
+			
+		</form>
+		
+		</div>
+		<div id="resultpage" style="display:none" class="col-sm-12 col-lg-12" >
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>S#</th>
+						<th>Question No</th>
+						<th>Correct</th>
+					</tr>
+				</thead>
+				<tbody id="result">
+					
+				</tbody>
+				
+				
+				
+			</table>
+		</div>
+		
+	</body>
+
+</html>
+<script type="text/javascript" src="jquery.min.js"></script>
+<script>
+
+	
+	var content=null;
+	
+	var counter = 0;
+	
+	var questions = [];
+	var answers= [];
+	
+	$(document).ready(function(){
+		
+		$.ajax({
+			url:"data.json",
+			type:"post",
+			datatype:"json",
+			success:function(res){
+				
+				content = res;
+				
+				var quiz1 = content.quiz["quiz-1"];
+				var q1 = quiz1["question-1"];
+				
+				console.log(quiz1);
+				
+				loadQuestion(q1);
+				
+				const propOwn = Object.getOwnPropertyNames(quiz1);
+
+				for(var i=0;i<propOwn.length;i++){
+				
+					questions.push(quiz1[propOwn[i]]);
+				
+				}
+				console.log(questions);
+				
+				
+			}
+		});
+		
+	});
+	
+	
+	function loadQuestion(q){
+	
+		if( q == undefined ){
+			
+			document.getElementById("fillinform").style.display = "none";
+			document.getElementById("mcqsform").style.display = "none";
+			document.getElementById("questionpane").style.display = "none";
+			
+			document.getElementById("resultpage").style.display = "block";
+
+			for(var i=0;i<answers.length;i++){
+			
+				var tr = document.createElement("tr");
+				
+				tr.innerHTML = "<td>"+(i+1)+"</td><td>"+answers[i][0]+"</td><td>"+answers[i][1]+"</td>";
+				
+				document.getElementById("result").append(tr);
+			
+			}
+
+		
+		
+		}else
+		if(q.type == "fillin"){
+					
+			document.getElementById("question").innerHTML = q.question;
+			document.getElementById("fillinform").style.display = "block";
+			document.getElementById("mcqsform").style.display = "none";
+			
+		}else if(q.type == "mcqs"){
+			
+			document.getElementById("question").innerHTML = q.question;
+			document.getElementById("option1").innerHTML = q.option1;
+			document.getElementById("option2").innerHTML = q.option2;
+			document.getElementById("option3").innerHTML = q.option3;
+			document.getElementById("option4").innerHTML = q.option4;
+			
+			document.getElementById("option1ans").value = q.option1;
+			document.getElementById("option2ans").value = q.option2;
+			document.getElementById("option3ans").value = q.option3;
+			document.getElementById("option4ans").value = q.option4;
+			
+			document.getElementById("mcqsform").style.display = "block";
+			document.getElementById("fillinform").style.display = "none";
+			
+		
+		}
+	
+	}
+	
+	function checkanswerFill(){
+		
+		var checkans = questions[counter++];
+		
+		if(checkans.answer == document.getElementById("useranswer").value){
+			alert("Correct");
+			
+			answers.push([counter,"Correct"]);
+			
+		}else{
+			alert("Wrong");
+			answers.push([counter,"Wrong"]);
+		}
+		loadQuestion(questions[counter]);
+	
+	}
+	function checkanswerMcqs(){
+		
+		var checkans = questions[counter++];
+		
+		if(
+			checkans.answer == document.getElementById("option1ans").value ||
+			checkans.answer == document.getElementById("option2ans").value ||
+			checkans.answer == document.getElementById("option3ans").value ||
+			checkans.answer == document.getElementById("option4ans").value
+		
+		){
+			
+			answers.push([counter,"Correct"]);
+
+			alert("Correct");
+		}else{
+			answers.push([counter,"Wrong"]);
+
+			alert("Wrong");
+		}
+		
+		
+		loadQuestion(questions[counter]);
+		
+	
+	}
+	
+	
+	
+	
+	
+</script>
+
+<script type="text/javascript"> 
+		  
+		/*
+		var fr=new FileReader(); 
+		fr.onload=function(){ 
+			content =fr.result; 
+		} 
+		  
+		fr.readAsText(this.files[0]); 
+		*/
+	 
+</script> 

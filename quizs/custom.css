@@ -1,0 +1,38 @@
+*{
+	font-weight:bold;
+}
+
+.custom-padding-all-1{
+	padding:1%;
+}
+
+.btn-theme.custom-padding-all-1{
+	padding-top:0px;
+}
+
+.custom-padding-all-2{
+	padding:2%;
+}
+
+.custom-padding-all-3{
+	padding:3%;
+}
+
+.custom-padding-all-4{
+	padding:4%;
+}
+.custom-padding-all-5{
+	padding:5%;
+}
+
+.custom-line-space{
+	
+	line-height:30px;
+	
+}
+
+.radio input[type=radio]{
+	
+	margin-top:8px;
+	
+}

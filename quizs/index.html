@@ -1,0 +1,335 @@
+<html >
+
+<head>
+	<link href="bootstrap.min.css" rel="stylesheet" />
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+	<style>
+		*{
+			font-weight:bold;
+			font-size:18px;
+		}
+		#wrong{
+			font-size:24px;
+		}
+		#correct{
+			font-size:24px;
+		}
+	</style>
+
+</head>
+
+<body class="container">
+
+<div class="col-sm-12 col-lg-12" >
+	<form id="questionform" onsubmit="return false">
+
+		<div class="form-group" id="questionpane">
+			<p id="question"></p>
+			<center>
+				<img src="" id="questionimage">
+			</center>
+		</div>
+		<div id="mcqsform" style="display:none">
+			<div class="form-group" >
+				<div class="col-sm-12 mcq" id="mcq1" onclick="savemcq(1)">
+					<label>
+						<input type="hidden" name="option" id="option1ans"/>
+						<span id="option1">Option 1</span>
+					</label>
+				</div>
+				<hr>
+				<div class="col-sm-12 mcq" id="mcq2" onclick="savemcq(2)">
+					<label>
+						<input type="hidden" name="option" id="option2ans"/>
+						<span id="option2">Option 2</span>
+					</label>
+				</div>
+				<hr>
+				<div class="col-sm-12 mcq" id="mcq3" onclick="savemcq(3)">
+					<label>
+						<input type="hidden" name="option" id="option3ans"/>
+						<span id="option3">Option 3</span>
+					</label>
+				</div>
+				<hr>
+				<div class="col-sm-12 mcq" id="mcq4" onclick="savemcq(4)">
+					<label>
+						<input type="hidden" name="option" id="option4ans"/>
+						<span id="option4">Option 4</span>
+					</label>
+				</div>
+
+			</div>
+
+		</div>
+		<div id="fillinform"  style="display:none">
+			<div class="form-group">
+				<input type="text" id="useranswer" class="form-control" />
+			</div>
+
+		</div>
+		<center>
+			<span id="wrong" style="color:red;display:none">Wrong</span>
+			<span id="correct" style="color:green;display:none">Correct</span>
+		</center>
+	</form>
+
+</div>
+<div id="resultpage"  style="display:none" class="col-sm-12 col-lg-12" >
+	<table class="table table-striped">
+		<thead>
+		<tr>
+
+			<th>Question No</th>
+			<th>Result</th>
+		</tr>
+		</thead>
+		<tbody id="result">
+
+		</tbody>
+
+	</table>
+</div>
+<input type="hidden" value="" id="youtubehelp" />
+</body>
+
+</html>
+<script type="text/javascript" src="jquery.min.js"></script>
+<script>
+
+
+	var content=null;
+
+	var counter = 0;
+
+	var questions = [];
+	var answers= [];
+
+	$(document).ready(function(){
+
+		$.ajax({
+			url:"data.json",
+			type:"post",
+			datatype:"json",
+			success:function(res){
+
+				content = res;
+
+				var quiz1 = content.quiz["quiz-1"];
+				var q1 = quiz1["question-1"];
+
+				//console.log(quiz1);
+
+
+				const propOwn = Object.getOwnPropertyNames(quiz1);
+
+				for(var i=0;i<propOwn.length;i++){
+
+					questions.push(quiz1[propOwn[i]]);
+
+				}
+
+
+				for(var i=0;i<questions.length;i++){
+					answers.push([i+1,"Not Answered"]);
+				}
+
+				console.log(questions);
+				if(q1 != undefined){
+					loadQuestion(q1);
+
+					//counter = 1;
+				}
+
+
+			}
+		});
+
+	});
+
+	var choicemcq = 0;
+	function savemcq(input){
+
+		choicemcq   = input ;
+
+		var items = document.getElementsByClassName("mcq");
+		for(var i=0;i<items.length;i++){
+			items[i].style.background = 'white';
+		}
+
+		document.getElementById("mcq"+input).style.background = "grey";
+
+	}
+
+	function next(){
+		/*if(counter>=questions.length){
+			return;
+		}*/
+		console.log(counter);
+		loadQuestion(questions[++counter]);
+	}
+
+	function prev(){
+		if(counter<0){
+
+			counter = 0;
+			loadQuestion(questions[counter]);
+			return;
+		}
+		if(counter==0){
+			loadQuestion(questions[counter]);
+		}else{
+			loadQuestion(questions[--counter]);
+		}
+
+	}
+
+	function loadQuestion(q){
+
+		console.log(questions.length);
+		if(questions.length <= counter && q == undefined){
+
+			//return;
+			document.getElementById("fillinform").style.display = "none";
+			document.getElementById("mcqsform").style.display = "none";
+			document.getElementById("questionpane").style.display = "none";
+			document.getElementById("resultpage").style.display = "block";
+
+			console.log(answers);
+			document.getElementById("result").innerHTML = "";
+
+			for(var i=0;i<answers.length;i++){
+				var tr = document.createElement("tr");
+				tr.innerHTML = "<td>"+answers[i][0]+"</td><td>"+answers[i][1]+"</td>";
+				document.getElementById("result").appendChild(tr);
+			}
+
+			Print.postMessage("hide");
+			console.log(answers);
+			//counter = 0;
+
+		}else	if(q.type == "fillin"){
+			document.getElementById("question").innerHTML = q.question;
+			document.getElementById("youtubehelp").value = q.youtubehelp;
+			if(q.image!=""){
+				document.getElementById("questionimage").src = q.image;
+				document.getElementById("questionimage").style.display = "block";
+			}else{
+				document.getElementById("questionimage").src = "#";
+				document.getElementById("questionimage").style.display = "none";
+			}
+			document.getElementById("fillinform").style.display = "block";
+			document.getElementById("mcqsform").style.display = "none";
+			document.getElementById("questionpane").style.display = "block";
+			document.getElementById("resultpage").style.display = "none";
+
+
+		}else if(q.type == "mcqs"){
+
+			document.getElementById("question").innerHTML = q.question;
+			document.getElementById("option1").innerHTML = q.option1;
+			document.getElementById("option2").innerHTML = q.option2;
+			document.getElementById("option3").innerHTML = q.option3;
+			document.getElementById("option4").innerHTML = q.option4;
+
+			document.getElementById("option1ans").value = q.option1;
+			document.getElementById("option2ans").value = q.option2;
+			document.getElementById("option3ans").value = q.option3;
+			document.getElementById("option4ans").value = q.option4;
+
+			document.getElementById("youtubehelp").value = q.youtubehelp;
+
+			document.getElementById("mcqsform").style.display = "block";
+			document.getElementById("fillinform").style.display = "none";
+			if(q.image!=""){
+				document.getElementById("questionimage").src = q.image;
+				document.getElementById("questionimage").style.display = "block";
+			}else{
+				document.getElementById("questionimage").src = '#';
+				document.getElementById("questionimage").style.display = "none";
+			}
+			document.getElementById("questionpane").style.display = "block";
+			document.getElementById("resultpage").style.display = "none";
+		
+		}
+		document.getElementById('wrong').style.display = 'none';
+		document.getElementById('correct').style.display = 'none';
+
+		//counter++;
+	
+	}
+
+	function checkans(){
+		var checkans = questions[counter];
+		if(checkans.type == "fillin"){
+			checkanswerFill();
+		}else{
+			checkanswerMcqs();
+		}
+
+
+	}
+
+	function checkanswerFill(){
+		
+		var checkans = questions[counter];
+
+		if(checkans.answer == document.getElementById("useranswer").value){
+			answers[counter] = [counter+1,"Correct"];
+			document.getElementById('correct').style.display = 'block';
+			document.getElementById('wrong').style.display = 'none';
+		}else{
+		//	alert("Wrong");
+			answers[counter] = [counter+1,"Wrong"];
+			//answers.push([counter+1,"Wrong"]);
+			document.getElementById('correct').style.display = 'none';
+			document.getElementById('wrong').style.display = 'block';
+		}
+		//loadQuestion(questions[counter]);
+	
+	}
+	function checkanswerMcqs(){
+		
+		var checkans = questions[counter];
+		//console.log(document.getElementById("option"+choicemcq+"ans").value);
+		if(checkans.answer == document.getElementById("option"+choicemcq+"ans").value ){
+
+			answers[counter] = [counter+1,"Correct"];
+			//answers.push([counter+1,"Correct"]);
+			document.getElementById('correct').style.display = 'block';
+			document.getElementById('wrong').style.display = 'none';
+			//alert("Correct");
+		}else{
+			answers[counter] = [counter+1,"Wrong"];
+			document.getElementById('correct').style.display = 'none';
+			document.getElementById('wrong').style.display = 'block';
+			//alert("Wrong");
+		}
+		
+		
+		//loadQuestion(questions[counter]);
+		
+	
+	}
+	
+	
+	for(var i=0;i<questions.length;i++){
+		answers.push([i+1,"Not Answered"]);
+	}
+	
+	
+</script>
+
+<script type="text/javascript"> 
+		  
+		/*
+		var fr=new FileReader(); 
+		fr.onload=function(){ 
+			content =fr.result; 
+		} 
+		  
+		fr.readAsText(this.files[0]); 
+		*/
+	 
+</script> 
